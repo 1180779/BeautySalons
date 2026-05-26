@@ -1,11 +1,18 @@
-import type {Salon, SalonListItem, UpdateSalonDto} from '@beauty-salons/shared';
+import type {Salon, SalonPage, UpdateSalonDto} from '@beauty-salons/shared';
 
 const BASE = '/api';
 
-export async function fetchSalons(params?: { district?: string; service?: string }): Promise<SalonListItem[]> {
+export async function fetchSalons(params?: {
+    district?: string;
+    service?: string;
+    page?: number;
+    pageSize?: number;
+}): Promise<SalonPage> {
     const qs = new URLSearchParams();
     if (params?.district) qs.set('district', params.district);
     if (params?.service) qs.set('service', params.service);
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.pageSize) qs.set('pageSize', String(params.pageSize));
     const url = `${BASE}/salons${qs.size ? '?' + qs : ''}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${res.status}`);

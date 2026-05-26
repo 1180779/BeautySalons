@@ -46,3 +46,11 @@ export interface Salon {
 export type SalonListItem = Pick<Salon, 'id' | 'name' | 'district' | 'rating' | 'reviewCount' | 'priceLevel' | 'address'>;
 
 export type UpdateSalonDto = Partial<Pick<Salon, 'name' | 'address' | 'district' | 'phoneNumber' | 'website' | 'services' | 'priceLevel' | 'rating' | 'reviewCount'>>;
+
+export interface SalonPage {
+    items: SalonListItem[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+}

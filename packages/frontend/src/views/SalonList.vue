@@ -1,41 +1,36 @@
 <script lang="ts" setup>
-import {computed, onMounted, ref} from 'vue';
+import {onMounted, ref} from 'vue';
 import {fetchSalons} from '../api';
 import type {SalonListItem} from '@beauty-salons/shared';
 
 const PAGE_SIZE = 12;
 
-const salons = ref<SalonListItem[]>([]);
+const items = ref<SalonListItem[]>([]);
+const total = ref(0);
+const totalPages = ref(1);
+const page = ref(1);
 const loading = ref(true);
 const error = ref('');
-const page = ref(1);
 
 const districtInput = ref('');
 const serviceInput = ref('');
 const appliedDistrict = ref('');
 const appliedService = ref('');
 
-const districts = computed(() => {
-  const set = new Set(salons.value.map(s => s.district).filter(Boolean) as string[]);
-  return [...set].sort();
-});
-
-const totalPages = computed(() => Math.max(1, Math.ceil(salons.value.length / PAGE_SIZE)));
-
-const paginated = computed(() => {
-  const start = (page.value - 1) * PAGE_SIZE;
-  return salons.value.slice(start, start + PAGE_SIZE);
-});
-
-async function load() {
+async function load(p = page.value) {
   loading.value = true;
   error.value = '';
-  page.value = 1;
   try {
-    salons.value = await fetchSalons({
+    const result = await fetchSalons({
       district: appliedDistrict.value || undefined,
       service: appliedService.value || undefined,
+      page: p,
+      pageSize: PAGE_SIZE,
     });
+    items.value = result.items;
+    total.value = result.total;
+    totalPages.value = result.totalPages;
+    page.value = result.page;
   } catch (e) {
     error.value = String(e);
   } finally {
@@ -46,7 +41,7 @@ async function load() {
 function applyFilters() {
   appliedDistrict.value = districtInput.value;
   appliedService.value = serviceInput.value;
-  load();
+  load(1);
 }
 
 function clearFilters() {
@@ -54,7 +49,12 @@ function clearFilters() {
   serviceInput.value = '';
   appliedDistrict.value = '';
   appliedService.value = '';
-  load();
+  load(1);
+}
+
+function goToPage(p: number) {
+  load(p);
+  window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 function priceLabel(p: string | null) {
@@ -68,7 +68,7 @@ function priceLabel(p: string | null) {
   return p ? (map[p] ?? p) : null;
 }
 
-onMounted(load);
+onMounted(() => load(1));
 </script>
 
 <template>
@@ -77,44 +77,43 @@ onMounted(load);
     <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
       <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <h1 class="text-xl font-bold text-gray-900 tracking-tight">Warsaw Beauty Salons</h1>
-        <span class="text-sm text-gray-500">{{ salons.length }} salons</span>
+        <span class="text-sm text-gray-500">{{ total }} salons</span>
       </div>
     </header>
 
     <div class="max-w-6xl mx-auto px-4 py-6">
       <!-- Filters -->
       <form class="flex flex-wrap gap-3 mb-6" @submit.prevent="applyFilters">
-        <select
+        <input
             v-model="districtInput"
-            class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400"
-        >
-          <option value="">All districts</option>
-          <option v-for="d in districts" :key="d" :value="d">{{ d }}</option>
-        </select>
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-pink-400"
+            placeholder="District (e.g. Mokotów)"
+        />
         <input
             v-model="serviceInput"
-            class="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[180px] focus:outline-none focus:ring-2 focus:ring-pink-400"
             placeholder="Service (e.g. manicure)"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-pink-400"
         />
         <button
-            class="bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors"
             type="submit"
+            class="bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors"
         >
           Filter
         </button>
         <button
             v-if="appliedDistrict || appliedService"
-            class="text-sm text-gray-500 hover:text-gray-700 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
             type="button"
+            class="text-sm text-gray-500 hover:text-gray-700 px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
             @click="clearFilters"
         >
           Clear
         </button>
       </form>
 
-      <!-- States -->
+      <!-- Skeleton -->
       <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div v-for="i in 6" :key="i" class="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse">
+        <div v-for="i in PAGE_SIZE" :key="i"
+             class="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse">
           <div class="h-44 bg-gray-200"></div>
           <div class="p-4 space-y-2">
             <div class="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -124,17 +123,16 @@ onMounted(load);
       </div>
 
       <p v-else-if="error" class="text-red-500 text-sm">{{ error }}</p>
-      <p v-else-if="!salons.length" class="text-gray-500 text-sm">No salons found.</p>
+      <p v-else-if="!items.length" class="text-gray-500 text-sm">No salons found.</p>
 
       <!-- Grid -->
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <router-link
-            v-for="s in paginated"
+            v-for="s in items"
             :key="s.id"
             :to="`/salons/${s.id}`"
             class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all group"
         >
-          <!-- Placeholder image -->
           <div class="h-44 bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
             <svg class="w-12 h-12 text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"
@@ -182,18 +180,18 @@ onMounted(load);
         <button
             :disabled="page === 1"
             class="px-3 py-1.5 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            @click="page--"
+            @click="goToPage(page - 1)"
         >←
         </button>
 
         <template v-for="p in totalPages" :key="p">
           <button
               v-if="Math.abs(p - page) <= 2 || p === 1 || p === totalPages"
+              class="min-w-[36px] px-3 py-1.5 rounded-lg text-sm border transition-colors"
               :class="p === page
                             ? 'bg-pink-500 border-pink-500 text-white font-medium'
                             : 'border-gray-200 text-gray-600 hover:bg-gray-100'"
-              class="min-w-[36px] px-3 py-1.5 rounded-lg text-sm border transition-colors"
-              @click="page = p"
+              @click="goToPage(p)"
           >{{ p }}
           </button>
           <span
@@ -205,7 +203,7 @@ onMounted(load);
         <button
             :disabled="page === totalPages"
             class="px-3 py-1.5 rounded-lg text-sm border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            @click="page++"
+            @click="goToPage(page + 1)"
         >→
         </button>
       </div>

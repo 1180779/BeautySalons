@@ -11,8 +11,15 @@ export class SalonController {
     findAll(
         @Query('district') district?: string,
         @Query('service') service?: string,
+        @Query('page') page?: string,
+        @Query('pageSize') pageSize?: string,
     ) {
-        return this.salonService.findAll(district, service);
+        return this.salonService.findAll(
+            district,
+            service,
+            page ? parseInt(page, 10) : 1,
+            pageSize ? parseInt(pageSize, 10) : 12,
+        );
     }
 
     @Get(':id')

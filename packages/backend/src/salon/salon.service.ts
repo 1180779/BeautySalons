@@ -1,7 +1,7 @@
 import {Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Repository} from 'typeorm';
-import type {SalonListItem, UpdateSalonDto} from '@beauty-salons/shared';
+import type {SalonPage, UpdateSalonDto} from '@beauty-salons/shared';
 import {SalonEntity} from './salon.entity';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class SalonService {
     ) {
     }
 
-    async findAll(district?: string, service?: string): Promise<SalonListItem[]> {
+    async findAll(district?: string, service?: string, page = 1, pageSize = 12): Promise<SalonPage> {
         const qb = this.repo
             .createQueryBuilder('s')
             .select(['s.id', 's.name', 's.district', 's.rating', 's.reviewCount', 's.priceLevel', 's.address']);
@@ -21,13 +21,16 @@ export class SalonService {
         if (service) qb.andWhere(':service = ANY(s.services)', {service});
 
         qb.orderBy('s.rating', 'DESC', 'NULLS LAST');
+        qb.skip((page - 1) * pageSize).take(pageSize);
 
-        const rows = await qb.getMany();
-        return rows.map(r => ({
+        const [rows, total] = await qb.getManyAndCount();
+        const items = rows.map(r => ({
             id: r.id, name: r.name, district: r.district,
             rating: r.rating, reviewCount: r.reviewCount,
             priceLevel: r.priceLevel, address: r.address,
         }));
+
+        return {items, total, page, pageSize, totalPages: Math.ceil(total / pageSize)};
     }
 
     async findOne(id: number): Promise<SalonEntity> {
