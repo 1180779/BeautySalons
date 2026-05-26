@@ -29,7 +29,7 @@ export interface Salon {
     id: number;
     placeId: string;
     name: string;
-    address: string;
+    address: string | null;
     district: string | null;
     phoneNumber: string | null;
     website: string | null;
