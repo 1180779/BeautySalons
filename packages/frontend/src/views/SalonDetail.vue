@@ -19,15 +19,9 @@ onMounted(async () => {
   }
 });
 
-function priceLabel(p: string | null) {
-  const map: Record<string, string> = {
-    PRICE_LEVEL_FREE: 'Free',
-    PRICE_LEVEL_INEXPENSIVE: '$',
-    PRICE_LEVEL_MODERATE: '$$',
-    PRICE_LEVEL_EXPENSIVE: '$$$',
-    PRICE_LEVEL_VERY_EXPENSIVE: '$$$$',
-  };
-  return p ? (map[p] ?? p) : null;
+function priceLabel(p: number | null) {
+  const labels = ['', 'Free', '$', '$$', '$$$', '$$$$'];
+  return p != null && p > 0 ? (labels[p] ?? null) : null;
 }
 </script>
 
@@ -54,14 +48,28 @@ function priceLabel(p: string | null) {
       <p v-else-if="error" class="text-red-500 text-sm">{{ error }}</p>
 
       <template v-else-if="salon">
-        <!-- Hero image placeholder -->
-        <div
-            class="h-56 bg-gradient-to-br from-pink-100 to-purple-100 rounded-xl flex items-center justify-center mb-6">
-          <svg class="w-16 h-16 text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"
-                  stroke-width="1.5"/>
-            <polyline points="9 22 9 12 15 12 15 22" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>
-          </svg>
+        <!-- Photos -->
+        <div class="mb-6">
+          <div v-if="salon.photos?.length" :class="salon.photos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'"
+               class="grid gap-2">
+            <img
+                v-for="(url, i) in salon.photos.slice(0, 4)"
+                :key="i"
+                :alt="`${salon.name} photo ${i + 1}`"
+                :class="i === 0 && salon.photos.length > 1 ? 'col-span-2 h-56' : 'h-36'"
+                :src="url"
+                class="w-full object-cover rounded-xl"
+            />
+          </div>
+          <div v-else
+               class="h-56 bg-gradient-to-br from-pink-100 to-purple-100 rounded-xl flex items-center justify-center">
+            <svg class="w-16 h-16 text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"
+                    stroke-width="1.5"/>
+              <polyline points="9 22 9 12 15 12 15 22" stroke-linecap="round" stroke-linejoin="round"
+                        stroke-width="1.5"/>
+            </svg>
+          </div>
         </div>
 
         <!-- Title row -->
@@ -99,6 +107,13 @@ function priceLabel(p: string | null) {
                 class="text-sm text-gray-600 bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-full">
                         {{ priceLabel(salon.priceLevel) }}
                     </span>
+          <span v-if="salon.priceRange?.startPrice != null || salon.priceRange?.endPrice != null"
+                class="text-sm text-gray-600 bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-full">
+            {{ salon.priceRange.currency ?? '' }}
+            {{ salon.priceRange.startPrice != null ? salon.priceRange.startPrice : '' }}
+            {{ salon.priceRange.startPrice != null && salon.priceRange.endPrice != null ? '–' : '' }}
+            {{ salon.priceRange.endPrice != null ? salon.priceRange.endPrice : '' }}
+          </span>
         </div>
 
         <!-- Info card -->

@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "packageManager": "pnpm@11.3.0",
   "scripts": {
-    "dev": "concurrently \"pnpm --filter backend dev\" \"pnpm --filter frontend dev\"",
-    "build": "pnpm --filter shared build && pnpm --filter backend build && pnpm --filter frontend build",
-    "collect": "pnpm --filter collector start"
+    "dev": "concurrently \"pnpm --filter @beauty-salons/backend dev\" \"pnpm --filter @beauty-salons/frontend dev\"",
+    "build": "pnpm --filter @beauty-salons/shared build && pnpm --filter @beauty-salons/backend build && pnpm --filter @beauty-salons/frontend build",
+    "collect": "pnpm --filter @beauty-salons/collector start"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

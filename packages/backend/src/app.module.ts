@@ -17,7 +17,7 @@ import {SalonEntity} from './salon/salon.entity';
                 password: cfg.get('POSTGRES_PASSWORD', 'beauty'),
                 database: cfg.get('POSTGRES_DB', 'beauty_salons'),
                 entities: [SalonEntity],
-                synchronize: true,
+                synchronize: false,
             }),
         }),
         SalonModule,

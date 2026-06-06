@@ -1,8 +1,8 @@
 import {writeFileSync} from 'fs';
-import {extractDistrict, extractServices, IPlace, searchNearby} from './places-client';
-import type {CollectedSalon} from '@beauty-salons/shared';
+import {extractDistrict, extractServices, fetchPhotoUrls, IPlace, mapPriceLevel, searchNearby} from './places-client';
+import type {CollectedSalon, PriceRange} from '@beauty-salons/shared';
 
-const TARGET = 120;
+const TARGET = 10_000_000;
 const OUTPUT_FILE = 'salons.json';
 
 const TYPES = [
@@ -34,7 +34,20 @@ const SEARCH_RADIUS_METERS = 2500;
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-function normalize(place: IPlace): CollectedSalon {
+function extractPriceRange(place: IPlace): PriceRange | null {
+    const pr = (place as any).priceRange;
+    if (!pr) return null;
+    const currency = pr.startPrice?.currencyCode ?? pr.endPrice?.currencyCode ?? null;
+    const startPrice = pr.startPrice?.units != null ? Number(pr.startPrice.units) : null;
+    const endPrice = pr.endPrice?.units != null ? Number(pr.endPrice.units) : null;
+    if (startPrice == null && endPrice == null) return null;
+    return {startPrice, endPrice, currency};
+}
+
+async function normalize(place: IPlace): Promise<CollectedSalon> {
+    const photoNames = (place.photos ?? []).map(p => p.name).filter(Boolean) as string[];
+    const photos = photoNames.length > 0 ? await fetchPhotoUrls(photoNames, 3) : [];
+
     return {
         placeId: place.id ?? '',
         name: place.displayName?.text ?? '',
@@ -44,13 +57,14 @@ function normalize(place: IPlace): CollectedSalon {
         website: place.websiteUri ?? null,
         services: extractServices(place.types),
         primaryType: place.primaryType ?? null,
-        priceLevel: place.priceLevel != null ? String(place.priceLevel) : null,
+        priceLevel: mapPriceLevel(place.priceLevel as any),
+        priceRange: extractPriceRange(place),
         rating: place.rating ?? null,
         reviewCount: place.userRatingCount ?? null,
         latitude: place.location?.latitude ?? null,
         longitude: place.location?.longitude ?? null,
         openingHours: place.regularOpeningHours?.weekdayDescriptions ?? null,
-        // TODO: strip _raw before seeding to DB once data shape is stable
+        photos,
         _raw: place,
     };
 }
@@ -77,7 +91,8 @@ async function main() {
                     for (const place of places) {
                         if (!place.id || seen.has(place.id)) continue;
                         seen.add(place.id);
-                        salons.push(normalize(place));
+                        const salon = await normalize(place);
+                        salons.push(salon);
                         newCount++;
                     }
 

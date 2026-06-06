@@ -57,15 +57,9 @@ function goToPage(p: number) {
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
-function priceLabel(p: string | null) {
-  const map: Record<string, string> = {
-    PRICE_LEVEL_FREE: 'Free',
-    PRICE_LEVEL_INEXPENSIVE: '$',
-    PRICE_LEVEL_MODERATE: '$$',
-    PRICE_LEVEL_EXPENSIVE: '$$$',
-    PRICE_LEVEL_VERY_EXPENSIVE: '$$$$',
-  };
-  return p ? (map[p] ?? p) : null;
+function priceLabel(p: number | null) {
+  const labels = ['', 'Free', '$', '$$', '$$$', '$$$$'];
+  return p != null && p > 0 ? (labels[p] ?? null) : null;
 }
 
 onMounted(() => load(1));
@@ -133,13 +127,21 @@ onMounted(() => load(1));
             :to="`/salons/${s.id}`"
             class="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all group"
         >
-          <div class="h-44 bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center">
-            <svg class="w-12 h-12 text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"
-                    stroke-width="1.5"/>
-              <polyline points="9 22 9 12 15 12 15 22" stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="1.5"/>
-            </svg>
+          <div class="h-44 bg-gradient-to-br from-pink-100 to-purple-100 overflow-hidden">
+            <img
+                v-if="s.photos?.[0]"
+                :alt="s.name"
+                :src="s.photos[0]"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            <div v-else class="w-full h-full flex items-center justify-center">
+              <svg class="w-12 h-12 text-pink-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke-linecap="round"
+                      stroke-linejoin="round" stroke-width="1.5"/>
+                <polyline points="9 22 9 12 15 12 15 22" stroke-linecap="round" stroke-linejoin="round"
+                          stroke-width="1.5"/>
+              </svg>
+            </div>
           </div>
 
           <div class="p-4">

@@ -15,7 +15,7 @@ export class SalonService {
     async findAll(district?: string, service?: string, page = 1, pageSize = 12): Promise<SalonPage> {
         const qb = this.repo
             .createQueryBuilder('s')
-            .select(['s.id', 's.name', 's.district', 's.rating', 's.reviewCount', 's.priceLevel', 's.address']);
+            .select(['s.id', 's.name', 's.district', 's.rating', 's.reviewCount', 's.priceLevel', 's.address', 's.photos']);
 
         if (district) qb.andWhere('s.district = :district', {district});
         if (service) qb.andWhere(':service = ANY(s.services)', {service});
@@ -25,9 +25,14 @@ export class SalonService {
 
         const [rows, total] = await qb.getManyAndCount();
         const items = rows.map(r => ({
-            id: r.id, name: r.name, district: r.district,
-            rating: r.rating, reviewCount: r.reviewCount,
-            priceLevel: r.priceLevel, address: r.address,
+            id: r.id,
+            name: r.name,
+            district: r.district,
+            rating: r.rating,
+            reviewCount: r.reviewCount,
+            priceLevel: r.priceLevel,
+            address: r.address,
+            photos: r.photos,
         }));
 
         return {items, total, page, pageSize, totalPages: Math.ceil(total / pageSize)};
