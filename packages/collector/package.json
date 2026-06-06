@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "tsx src/index.ts",
-    "download-photos": "tsx src/download-photos.ts"
+    "cache-photos": "tsx src/cache-photos.ts"
   },
   "dependencies": {
     "@beauty-salons/shared": "workspace:*",

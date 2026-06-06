@@ -56,7 +56,7 @@ export async function searchNearby(
 
 export async function getPhotoUri(name: string, maxWidthPx = 800): Promise<string | null> {
     try {
-        const [media] = await client.getPhotoMedia({name, maxWidthPx});
+        const [media] = await client.getPhotoMedia({name: `${name}/media`, maxWidthPx});
         return media.photoUri ?? null;
     } catch {
         return null;
