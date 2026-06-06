@@ -17,6 +17,9 @@ importers:
       '@beauty-salons/shared':
         specifier: workspace:*
         version: link:../shared
+      '@googlemaps/places':
+        specifier: ^2.4.1
+        version: 2.4.1
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.23(reflect-metadata@0.2.2)(rxjs@7.8.2)

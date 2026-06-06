@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {onMounted, ref} from 'vue';
-import {fetchSalon} from '../api';
+import {fetchSalon, resolvePhotoUrl} from '../api';
 import type {Salon} from '@beauty-salons/shared';
 
 const props = defineProps<{ id: string }>();
@@ -52,14 +52,27 @@ function priceLabel(p: number | null) {
         <div class="mb-6">
           <div v-if="salon.photos?.length" :class="salon.photos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'"
                class="grid gap-2">
-            <img
-                v-for="(url, i) in salon.photos.slice(0, 4)"
+            <div
+                v-for="(photo, i) in salon.photos.slice(0, 4)"
                 :key="i"
-                :alt="`${salon.name} photo ${i + 1}`"
-                :class="i === 0 && salon.photos.length > 1 ? 'col-span-2 h-56' : 'h-36'"
-                :src="url"
-                class="w-full object-cover rounded-xl"
-            />
+                :class="i === 0 && salon.photos.length > 1 ? 'col-span-2' : ''"
+                class="relative overflow-hidden rounded-xl"
+            >
+              <img
+                  :alt="`${salon.name} photo ${i + 1}`"
+                  :class="i === 0 && salon.photos.length > 1 ? 'h-56' : 'h-36'"
+                  :src="resolvePhotoUrl(photo.url)"
+                  class="w-full object-cover"
+              />
+              <div v-if="photo.attributions?.length"
+                   class="absolute bottom-0 left-0 right-0 bg-black/40 px-2 py-1 flex items-center gap-1.5">
+                <img v-if="photo.attributions[0].photoUri" :alt="photo.attributions[0].displayName"
+                     :src="photo.attributions[0].photoUri"
+                     class="w-4 h-4 rounded-full object-cover"/>
+                <a :href="photo.attributions[0].uri" class="text-white/80 text-xs truncate hover:text-white"
+                   rel="noopener" target="_blank">{{ photo.attributions[0].displayName }}</a>
+              </div>
+            </div>
           </div>
           <div v-else
                class="h-56 bg-gradient-to-br from-pink-100 to-purple-100 rounded-xl flex items-center justify-center">

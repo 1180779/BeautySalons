@@ -2,6 +2,11 @@ import type {Salon, SalonPage, UpdateSalonDto} from '@beauty-salons/shared';
 
 const BASE = '/api';
 
+export function resolvePhotoUrl(url: string): string {
+    if (url.startsWith('places/')) return `${BASE}/photos/${url.slice('places/'.length)}`;
+    return url;
+}
+
 export async function fetchSalons(params?: {
     district?: string;
     service?: string;

@@ -1,5 +1,5 @@
 import {Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn} from 'typeorm';
-import type {PriceRange} from '@beauty-salons/shared';
+import type {PriceRange, SalonPhoto} from '@beauty-salons/shared';
 import {PriceLevel} from '@beauty-salons/shared';
 
 @Entity('salons')
@@ -52,8 +52,8 @@ export class SalonEntity {
     @Column({type: 'text', array: true, nullable: true})
     openingHours: string[] | null;
 
-    @Column({type: 'text', array: true, default: '{}'})
-    photos: string[];
+    @Column({type: 'jsonb', default: '[]'})
+    photos: SalonPhoto[];
 
     @CreateDateColumn()
     createdAt: Date;

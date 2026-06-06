@@ -1,6 +1,6 @@
 import {writeFileSync} from 'fs';
-import {extractDistrict, extractServices, fetchPhotoUrls, IPlace, mapPriceLevel, searchNearby} from './places-client';
-import type {CollectedSalon, PriceRange} from '@beauty-salons/shared';
+import {extractDistrict, extractServices, IPlace, mapPriceLevel, searchNearby} from './places-client';
+import type {CollectedSalon, PriceRange, SalonPhoto} from '@beauty-salons/shared';
 
 const TARGET = 10_000_000;
 const OUTPUT_FILE = 'salons.json';
@@ -44,10 +44,19 @@ function extractPriceRange(place: IPlace): PriceRange | null {
     return {startPrice, endPrice, currency};
 }
 
-async function normalize(place: IPlace): Promise<CollectedSalon> {
-    const photoNames = (place.photos ?? []).map(p => p.name).filter(Boolean) as string[];
-    const photos = photoNames.length > 0 ? await fetchPhotoUrls(photoNames, 3) : [];
+function extractPhotos(place: IPlace): SalonPhoto[] {
+    return (place.photos ?? []).slice(0, 3).flatMap(p => {
+        if (!p.name) return [];
+        const attributions = (p.authorAttributions ?? []).map((a: any) => ({
+            displayName: a.displayName ?? '',
+            uri: a.uri ?? '',
+            photoUri: a.photoUri ?? '',
+        }));
+        return [{url: p.name, attributions}];
+    });
+}
 
+function normalize(place: IPlace): CollectedSalon {
     return {
         placeId: place.id ?? '',
         name: place.displayName?.text ?? '',
@@ -64,7 +73,7 @@ async function normalize(place: IPlace): Promise<CollectedSalon> {
         latitude: place.location?.latitude ?? null,
         longitude: place.location?.longitude ?? null,
         openingHours: place.regularOpeningHours?.weekdayDescriptions ?? null,
-        photos,
+        photos: extractPhotos(place),
         _raw: place,
     };
 }
@@ -91,7 +100,7 @@ async function main() {
                     for (const place of places) {
                         if (!place.id || seen.has(place.id)) continue;
                         seen.add(place.id);
-                        const salon = await normalize(place);
+                        const salon = normalize(place);
                         salons.push(salon);
                         newCount++;
                     }

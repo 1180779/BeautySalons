@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import {onMounted, ref} from 'vue';
-import {fetchSalons} from '../api';
+import {fetchSalons, resolvePhotoUrl} from '../api';
 import type {SalonListItem} from '@beauty-salons/shared';
 
 const PAGE_SIZE = 12;
@@ -131,7 +131,7 @@ onMounted(() => load(1));
             <img
                 v-if="s.photos?.[0]"
                 :alt="s.name"
-                :src="s.photos[0]"
+                :src="resolvePhotoUrl(s.photos[0].url)"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <div v-else class="w-full h-full flex items-center justify-center">

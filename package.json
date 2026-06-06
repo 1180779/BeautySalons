@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "concurrently \"pnpm --filter @beauty-salons/backend dev\" \"pnpm --filter @beauty-salons/frontend dev\"",
     "build": "pnpm --filter @beauty-salons/shared build && pnpm --filter @beauty-salons/backend build && pnpm --filter @beauty-salons/frontend build",
-    "collect": "pnpm --filter @beauty-salons/collector start"
+    "collect": "pnpm --filter @beauty-salons/collector start",
+    "download-photos": "pnpm --filter @beauty-salons/collector download-photos"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

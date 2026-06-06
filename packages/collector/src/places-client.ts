@@ -54,18 +54,13 @@ export async function searchNearby(
     return response.places ?? [];
 }
 
-/** Resolve up to `limit` photo names to CDN URIs via getPhotoMedia. */
-export async function fetchPhotoUrls(photoNames: string[], limit = 3): Promise<string[]> {
-    const urls: string[] = [];
-    for (const name of photoNames.slice(0, limit)) {
-        try {
-            const [media] = await client.getPhotoMedia({name, maxWidthPx: 800});
-            if (media.photoUri) urls.push(media.photoUri);
-        } catch {
-            // skip failed photos
-        }
+export async function getPhotoUri(name: string, maxWidthPx = 800): Promise<string | null> {
+    try {
+        const [media] = await client.getPhotoMedia({name, maxWidthPx});
+        return media.photoUri ?? null;
+    } catch {
+        return null;
     }
-    return urls;
 }
 
 const NOISE_TYPES = new Set([

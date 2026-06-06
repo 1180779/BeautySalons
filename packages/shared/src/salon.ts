@@ -1,3 +1,14 @@
+export interface PhotoAttribution {
+    displayName: string;
+    uri: string;
+    photoUri: string;
+}
+
+export interface SalonPhoto {
+    url: string;
+    attributions: PhotoAttribution[];
+}
+
 export enum PriceLevel {
     PRICE_LEVEL_UNSPECIFIED = 0,
     PRICE_LEVEL_FREE = 1,
@@ -30,8 +41,7 @@ export interface CollectedSalon {
     latitude: number | null;
     longitude: number | null;
     openingHours: string[] | null;
-    photos: string[];
-    // TODO: strip before seeding to DB once data shape is stable
+    photos: SalonPhoto[];
     _raw: unknown;
 }
 
@@ -51,7 +61,7 @@ export interface Salon {
     latitude: number | null;
     longitude: number | null;
     openingHours: string[] | null;
-    photos: string[];
+    photos: SalonPhoto[];
     createdAt: string;
     updatedAt: string;
 }
