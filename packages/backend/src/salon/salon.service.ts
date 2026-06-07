@@ -1,7 +1,7 @@
 import {Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Repository} from 'typeorm';
-import type {SalonPage, UpdateSalonDto} from '@beauty-salons/shared';
+import type {SalonListItem, SalonPage, UpdateSalonDto} from '@beauty-salons/shared';
 import {SalonEntity} from './salon.entity';
 
 @Injectable()
@@ -17,14 +17,14 @@ export class SalonService {
             .createQueryBuilder('s')
             .select(['s.id', 's.name', 's.district', 's.rating', 's.reviewCount', 's.priceLevel', 's.address', 's.photos']);
 
-        if (district) qb.andWhere('s.district = :district', {district});
-        if (service) qb.andWhere(':service = ANY(s.services)', {service});
+        if (district) qb.andWhere('s.district ILIKE :district', {district: `%${district}%`});
+        if (service) qb.andWhere('EXISTS (SELECT 1 FROM unnest(s.services) svc WHERE svc ILIKE :service)', {service: `%${service}%`});
 
         qb.orderBy('s.rating', 'DESC', 'NULLS LAST');
         qb.skip((page - 1) * pageSize).take(pageSize);
 
         const [rows, total] = await qb.getManyAndCount();
-        const items = rows.map(r => ({
+        const items = rows.map((r): SalonListItem => ({
             id: r.id,
             name: r.name,
             district: r.district,

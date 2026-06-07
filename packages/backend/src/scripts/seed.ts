@@ -3,7 +3,7 @@ import {readFileSync} from 'fs';
 import {resolve} from 'path';
 import {DataSource} from 'typeorm';
 import * as dotenv from 'dotenv';
-import type {CollectedSalon, SalonPhoto} from '@beauty-salons/shared';
+import type {CollectedSalon, PhotoAttribution, SalonPhoto} from '@beauty-salons/shared';
 import {SalonEntity} from '../salon/salon.entity';
 
 dotenv.config({path: resolve(__dirname, '../../../..', '.env')});
@@ -25,16 +25,16 @@ function photosFromRaw(raw: any): SalonPhoto[] {
     return (raw?.photos ?? []).slice(0, 3).flatMap((p: any) => {
         if (!p.name) return [];
         const url = `https://places.googleapis.com/v1/${p.name}/media?maxWidthPx=800&key=${apiKey}`;
-        const attributions = (p.authorAttributions ?? []).map((a: any) => ({
+        const attributions: PhotoAttribution[] = (p.authorAttributions ?? []).map((a: any) => ({
             displayName: a.displayName ?? '',
             uri: a.uri ?? '',
             photoUri: a.photoUri ?? '',
-        }));
+        } as PhotoAttribution));
         return [{url, attributions}];
     });
 }
 
-function toEntity(s: CollectedSalon) {
+function toEntity(s: CollectedSalon): Omit<SalonEntity, 'id' | 'createdAt' | 'updatedAt'> {
     const {_raw, ...rest} = s;
     const photos = rest.photos.length ? rest.photos : photosFromRaw(_raw);
     return {...rest, photos};

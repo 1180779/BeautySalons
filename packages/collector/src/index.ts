@@ -32,8 +32,6 @@ const DISTRICT_CENTERS: Array<{ name: string; center: { latitude: number; longit
 
 const SEARCH_RADIUS_METERS = 2500;
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 function extractPriceRange(place: IPlace): PriceRange | null {
     const pr = (place as any).priceRange;
     if (!pr) return null;
@@ -109,14 +107,12 @@ async function main() {
                     save(salons);
 
                     if (seen.size >= TARGET) {
-                        console.log(`\nTarget of ${TARGET} reached — stopping early.`);
+                        console.log(`\nTarget of ${TARGET} reached -- stopping early.`);
                         break outer;
                     }
                 } catch (err) {
                     console.error(`ERROR: ${err instanceof Error ? err.message : err}`);
                 }
-
-                await sleep(150);
             }
         }
 
