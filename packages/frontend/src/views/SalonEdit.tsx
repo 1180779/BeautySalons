@@ -1,4 +1,4 @@
-import {FormEvent, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import {fetchSalon, updateSalon} from '../api';
 import type {PriceLevel} from '@beauty-salons/shared';
@@ -49,7 +49,7 @@ export default function SalonEdit() {
             .finally(() => setLoading(false));
     }, [id]);
 
-    async function save(e: FormEvent) {
+    async function save(e: { preventDefault(): void }) {
         e.preventDefault();
         setSaving(true);
         setError('');

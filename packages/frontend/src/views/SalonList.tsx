@@ -1,4 +1,4 @@
-import {FormEvent, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import {fetchSalons, resolvePhotoUrl} from '../api';
 import type {SalonListItem} from '@beauty-salons/shared';
@@ -48,7 +48,7 @@ export default function SalonList() {
         load(1, '', '');
     }, []);
 
-    function applyFilters(e: FormEvent) {
+    function applyFilters(e: { preventDefault(): void }) {
         e.preventDefault();
         setAppliedDistrict(districtInput);
         setAppliedService(serviceInput);
@@ -82,14 +82,14 @@ export default function SalonList() {
                     <input
                         value={districtInput}
                         onChange={e => setDistrictInput(e.target.value)}
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-pink-400"
+                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-40 focus:outline-none focus:ring-2 focus:ring-pink-400"
                         placeholder="District (e.g. Mokotów)"
                     />
                     <input
                         value={serviceInput}
                         onChange={e => setServiceInput(e.target.value)}
                         placeholder="Service (e.g. manicure)"
-                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-pink-400"
+                        className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 min-w-40 focus:outline-none focus:ring-2 focus:ring-pink-400"
                     />
                     <button
                         type="submit"
@@ -133,7 +133,7 @@ export default function SalonList() {
                                 to={`/salons/${s.id}`}
                                 className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all group"
                             >
-                                <div className="h-44 bg-gradient-to-br from-pink-100 to-purple-100 overflow-hidden">
+                                <div className="h-44 bg-linear-to-br from-pink-100 to-purple-100 overflow-hidden">
                                     {s.photos?.[0] ? (
                                         <img
                                             alt={s.name}
@@ -213,7 +213,7 @@ export default function SalonList() {
                                 return (
                                     <button
                                         key={p}
-                                        className={`min-w-[36px] px-3 py-1.5 rounded-lg text-sm border transition-colors ${p === page ? 'bg-pink-500 border-pink-500 text-white font-medium' : 'border-gray-200 text-gray-600 hover:bg-gray-100'}`}
+                                        className={`min-w-9 px-3 py-1.5 rounded-lg text-sm border transition-colors ${p === page ? 'bg-pink-500 border-pink-500 text-white font-medium' : 'border-gray-200 text-gray-600 hover:bg-gray-100'}`}
                                         onClick={() => goToPage(p)}
                                     >{p}</button>
                                 );
