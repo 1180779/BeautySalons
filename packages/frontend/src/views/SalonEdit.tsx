@@ -91,8 +91,7 @@ export default function SalonEdit() {
                         {Array.from({length: 5}, (_, i) => <div key={i} className="h-12 bg-gray-200 rounded-lg"/>)}
                     </div>
                 ) : (
-                    <form className="space-y-4"
-                          onSubmit={handleSubmit(onSubmit, errors => console.log('validation errors:', errors))}>
+                    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
                         <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
                             <div className="flex flex-col px-4 py-3">
                                 <div className="flex items-center gap-4">
