@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@beauty-salons/shared": "workspace:*",
+    "clsx": "^2.1.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-hook-form": "^7.77.0",
     "react-router-dom": "^7.17.0"
   },
   "devDependencies": {

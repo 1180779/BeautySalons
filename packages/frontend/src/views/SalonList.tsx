@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
+import clsx from 'clsx';
 import {fetchSalons, resolvePhotoUrl} from '../api';
 import type {SalonListItem} from '@beauty-salons/shared';
 
@@ -213,13 +214,13 @@ export default function SalonList() {
                                 return (
                                     <button
                                         key={p}
-                                        className={`min-w-9 px-3 py-1.5 rounded-lg text-sm border transition-colors ${p === page ? 'bg-pink-500 border-pink-500 text-white font-medium' : 'border-gray-200 text-gray-600 hover:bg-gray-100'}`}
+                                        className={clsx('min-w-9 px-3 py-1.5 rounded-lg text-sm border transition-colors', p === page ? 'bg-pink-500 border-pink-500 text-white font-medium' : 'border-gray-200 text-gray-600 hover:bg-gray-100')}
                                         onClick={() => goToPage(p)}
                                     >{p}</button>
                                 );
                             }
                             if (Math.abs(p - page) === 3) {
-                                return <span key={p} className="px-1 text-gray-400 text-sm">…</span>;
+                                return <span key={p} className="px-1 text-gray-400 text-sm">...</span>;
                             }
                             return null;
                         })}

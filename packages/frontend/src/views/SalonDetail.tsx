@@ -1,7 +1,14 @@
 import {useEffect, useState} from 'react';
 import {Link, useParams} from 'react-router-dom';
+import clsx from 'clsx';
 import {fetchSalon, resolvePhotoUrl} from '../api';
 import type {Salon} from '@beauty-salons/shared';
+
+const cx = {
+    badge: 'text-sm bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-full',
+    infoRow: 'flex gap-3 px-4 py-3',
+    infoIcon: 'w-4 h-4 text-gray-400 mt-0.5 shrink-0',
+};
 
 function priceLabel(p: number | null | undefined) {
     const labels = ['', 'Free', '$', '$$', '$$$', '$$$$'];
@@ -48,39 +55,40 @@ export default function SalonDetail() {
                         <div className="mb-6">
                             {salon.photos?.length ? (
                                 <div
-                                    className={`grid gap-2 ${salon.photos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                                    {salon.photos.slice(0, 4).map((photo, i) => (
-                                        <div
-                                            key={i}
-                                            className={`relative overflow-hidden rounded-xl ${i === 0 && salon.photos.length > 1 ? 'col-span-2' : ''}`}
-                                        >
-                                            <img
-                                                alt={`${salon.name} photo ${i + 1}`}
-                                                src={resolvePhotoUrl(photo.url)}
-                                                className={`w-full object-cover ${i === 0 && salon.photos.length > 1 ? 'h-56' : 'h-36'}`}
-                                            />
-                                            {photo.attributions?.length > 0 && (
-                                                <div
-                                                    className="absolute bottom-0 left-0 right-0 bg-black/40 px-2 py-1 flex items-center gap-1.5">
-                                                    {photo.attributions[0].photoUri && (
-                                                        <img
-                                                            alt={photo.attributions[0].displayName}
-                                                            src={photo.attributions[0].photoUri}
-                                                            className="w-4 h-4 rounded-full object-cover"
-                                                        />
-                                                    )}
-                                                    <a
-                                                        href={photo.attributions[0].uri}
-                                                        className="text-white/80 text-xs truncate hover:text-white"
-                                                        rel="noopener"
-                                                        target="_blank"
-                                                    >
-                                                        {photo.attributions[0].displayName}
-                                                    </a>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                    className={clsx('grid gap-2', salon.photos.length === 1 ? 'grid-cols-1' : 'grid-cols-2')}>
+                                    {salon.photos.slice(0, 4).map((photo, i) => {
+                                        const isHero = i === 0 && salon.photos.length > 1;
+                                        return (
+                                            <div key={i}
+                                                 className={clsx('relative overflow-hidden rounded-xl', isHero && 'col-span-2')}>
+                                                <img
+                                                    alt={`${salon.name} photo ${i + 1}`}
+                                                    src={resolvePhotoUrl(photo.url)}
+                                                    className={clsx('w-full object-cover', isHero ? 'h-56' : 'h-36')}
+                                                />
+                                                {photo.attributions?.length > 0 && (
+                                                    <div
+                                                        className="absolute bottom-0 left-0 right-0 bg-black/40 px-2 py-1 flex items-center gap-1.5">
+                                                        {photo.attributions[0].photoUri && (
+                                                            <img
+                                                                alt={photo.attributions[0].displayName}
+                                                                src={photo.attributions[0].photoUri}
+                                                                className="w-4 h-4 rounded-full object-cover"
+                                                            />
+                                                        )}
+                                                        <a
+                                                            href={photo.attributions[0].uri}
+                                                            className="text-white/80 text-xs truncate hover:text-white"
+                                                            rel="noopener"
+                                                            target="_blank"
+                                                        >
+                                                            {photo.attributions[0].displayName}
+                                                        </a>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 <div
@@ -134,29 +142,22 @@ export default function SalonDetail() {
                                 </span>
                             )}
                             {priceLabel(salon.priceLevel) && (
-                                <span
-                                    className="text-sm text-gray-600 bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-full">
-                                    {priceLabel(salon.priceLevel)}
-                                </span>
+                                <span className={cx.badge}>{priceLabel(salon.priceLevel)}</span>
                             )}
                             {(salon.priceRange?.startPrice != null || salon.priceRange?.endPrice != null) && (
-                                <span
-                                    className="text-sm text-gray-600 bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-full">
+                                <span className={cx.badge}>
                                     {salon.priceRange.currency ?? ''}{' '}
-                                    {salon.priceRange.startPrice != null ? salon.priceRange.startPrice : ''}
+                                    {salon.priceRange.startPrice ?? ''}
                                     {salon.priceRange.startPrice != null && salon.priceRange.endPrice != null ? '–' : ''}
-                                    {salon.priceRange.endPrice != null ? salon.priceRange.endPrice : ''}
+                                    {salon.priceRange.endPrice ?? ''}
                                 </span>
                             )}
                         </div>
 
                         <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100 mb-6">
-
-                            {/* address */}
                             {salon.address && (
-                                <div className="flex gap-3 px-4 py-3">
-                                    <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none"
-                                         stroke="currentColor" viewBox="0 0 24 24">
+                                <div className={cx.infoRow}>
+                                    <svg className={cx.infoIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path
                                             d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
                                             strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/>
@@ -166,12 +167,9 @@ export default function SalonDetail() {
                                     <span className="text-sm text-gray-700">{salon.address}</span>
                                 </div>
                             )}
-
-                            {/* phone numer */}
                             {salon.phoneNumber && (
-                                <div className="flex gap-3 px-4 py-3">
-                                    <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none"
-                                         stroke="currentColor" viewBox="0 0 24 24">
+                                <div className={cx.infoRow}>
+                                    <svg className={cx.infoIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path
                                             d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                                             strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/>
@@ -180,12 +178,9 @@ export default function SalonDetail() {
                                        className="text-sm text-pink-600 hover:underline">{salon.phoneNumber}</a>
                                 </div>
                             )}
-
-                            {/* website */}
                             {salon.website && (
-                                <div className="flex gap-3 px-4 py-3">
-                                    <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none"
-                                         stroke="currentColor" viewBox="0 0 24 24">
+                                <div className={cx.infoRow}>
+                                    <svg className={cx.infoIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path
                                             d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
                                             strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"/>
@@ -196,7 +191,6 @@ export default function SalonDetail() {
                             )}
                         </div>
 
-                        {/* services tags */}
                         {salon.services.length > 0 && (
                             <div className="mb-6">
                                 <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Services</h2>

@@ -1,7 +1,8 @@
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
+import {useForm} from 'react-hook-form';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import {fetchSalon, updateSalon} from '../api';
-import type {PriceLevel} from '@beauty-salons/shared';
+import {PriceLevel} from '@beauty-salons/shared';
 
 const PRICE_LEVELS = [
     {value: '', label: '— not set —'},
@@ -12,65 +13,63 @@ const PRICE_LEVELS = [
     {value: 'PRICE_LEVEL_VERY_EXPENSIVE', label: '$$$$ Very expensive'},
 ];
 
-const fieldClass = 'flex-1 text-sm text-gray-900 border-0 focus:outline-none focus:ring-2 focus:ring-pink-400 rounded-lg px-2 py-1';
+const cx = {
+    label: 'w-28 text-sm font-medium text-gray-500 shrink-0',
+    field: 'flex-1 text-sm text-gray-900 border-0 focus:outline-none focus:ring-2 focus:ring-pink-400 rounded-lg px-2 py-1',
+    error: 'text-xs text-red-500 mt-0.5 px-2',
+    row: 'flex items-center gap-4 px-4 py-3',
+};
+
+interface FormValues {
+    name: string;
+    address: string;
+    district: string;
+    phoneNumber: string;
+    website: string;
+    rating: string;
+    reviewCount: string;
+    priceLevel: string;
+    servicesRaw: string;
+}
 
 export default function SalonEdit() {
     const {id} = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState('');
-
-    const [name, setName] = useState('');
-    const [address, setAddress] = useState('');
-    const [district, setDistrict] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [website, setWebsite] = useState('');
-    const [rating, setRating] = useState('');
-    const [reviewCount, setReviewCount] = useState('');
-    const [priceLevel, setPriceLevel] = useState('');
-    const [servicesRaw, setServicesRaw] = useState('');
+    const {register, handleSubmit, reset, formState: {errors, isSubmitting, isLoading}} = useForm<FormValues>({
+        defaultValues: async () => {
+            const salon = await fetchSalon(Number(id));
+            return {
+                name: salon.name,
+                address: salon.address ?? '',
+                district: salon.district ?? '',
+                phoneNumber: salon.phoneNumber ?? '',
+                website: salon.website ?? '',
+                rating: salon.rating != null ? String(salon.rating) : '',
+                reviewCount: salon.reviewCount != null ? String(salon.reviewCount) : '',
+                priceLevel: salon.priceLevel != null ? PriceLevel[salon.priceLevel] : '',
+                servicesRaw: salon.services.join(', '),
+            };
+        },
+    });
 
     useEffect(() => {
-        fetchSalon(Number(id))
-            .then(salon => {
-                setName(salon.name);
-                setAddress(salon.address ?? '');
-                setDistrict(salon.district ?? '');
-                setPhoneNumber(salon.phoneNumber ?? '');
-                setWebsite(salon.website ?? '');
-                setRating(salon.rating != null ? String(salon.rating) : '');
-                setReviewCount(salon.reviewCount != null ? String(salon.reviewCount) : '');
-                setPriceLevel((salon.priceLevel ?? '') as string);
-                setServicesRaw(salon.services.join(', '));
-            })
-            .catch(e => setError(String(e)))
-            .finally(() => setLoading(false));
-    }, [id]);
+        return () => reset();
+    }, [reset]);
 
-    async function save(e: { preventDefault(): void }) {
-        e.preventDefault();
-        setSaving(true);
-        setError('');
-        try {
-            await updateSalon(Number(id), {
-                name: name || undefined,
-                address: address || null,
-                district: district || null,
-                phoneNumber: phoneNumber || null,
-                website: website || null,
-                rating: rating !== '' ? Number(rating) : null,
-                reviewCount: reviewCount !== '' ? Number(reviewCount) : null,
-                priceLevel: (priceLevel as unknown as PriceLevel) || null,
-                services: servicesRaw.split(',').map(s => s.trim()).filter(Boolean),
-            });
-            navigate(`/salons/${id}`);
-        } catch (e) {
-            setError(String(e));
-        } finally {
-            setSaving(false);
-        }
+    async function onSubmit(data: FormValues) {
+        await updateSalon(Number(id), {
+            name: data.name || undefined,
+            address: data.address || null,
+            district: data.district || null,
+            phoneNumber: data.phoneNumber || null,
+            website: data.website || null,
+            rating: data.rating !== '' ? Number(data.rating) : null,
+            reviewCount: data.reviewCount !== '' ? Number(data.reviewCount) : null,
+            priceLevel: data.priceLevel ? PriceLevel[data.priceLevel as keyof typeof PriceLevel] : null,
+            services: data.servicesRaw.split(',').map(s => s.trim()).filter(Boolean),
+        });
+        navigate(`/salons/${id}`);
     }
 
     return (
@@ -87,103 +86,98 @@ export default function SalonEdit() {
             </header>
 
             <div className="max-w-2xl mx-auto px-4 py-6">
-                {loading ? (
+                {isLoading ? (
                     <div className="animate-pulse space-y-4">
                         {Array.from({length: 5}, (_, i) => <div key={i} className="h-12 bg-gray-200 rounded-lg"/>)}
                     </div>
                 ) : (
-                    <>
-                        {error && (
-                            <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-200 rounded-lg px-4 py-3">{error}</p>
-                        )}
-
-                        <form className="space-y-4" onSubmit={save}>
-                            <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
-                                <div className="flex items-center gap-4 px-4 py-3">
-                                    <label className="w-28 text-sm font-medium text-gray-500 shrink-0"
-                                           htmlFor="name">Name</label>
-                                    <input id="name" value={name} onChange={e => setName(e.target.value)}
-                                           className={fieldClass} required type="text"/>
+                    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+                        <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+                            <div className="flex flex-col px-4 py-3">
+                                <div className="flex items-center gap-4">
+                                    <label className={cx.label} htmlFor="name">Name</label>
+                                    <input id="name" className={cx.field} type="text"
+                                           {...register('name', {required: 'Name is required'})}/>
                                 </div>
-                                <div className="flex items-center gap-4 px-4 py-3">
-                                    <label className="w-28 text-sm font-medium text-gray-500 shrink-0"
-                                           htmlFor="district">District</label>
-                                    <input id="district" value={district} onChange={e => setDistrict(e.target.value)}
-                                           className={fieldClass} type="text"/>
-                                </div>
-                                <div className="flex items-center gap-4 px-4 py-3">
-                                    <label className="w-28 text-sm font-medium text-gray-500 shrink-0"
-                                           htmlFor="address">Address</label>
-                                    <input id="address" value={address} onChange={e => setAddress(e.target.value)}
-                                           className={fieldClass} type="text"/>
-                                </div>
-                                <div className="flex items-center gap-4 px-4 py-3">
-                                    <label className="w-28 text-sm font-medium text-gray-500 shrink-0"
-                                           htmlFor="phoneNumber">Phone</label>
-                                    <input id="phoneNumber" value={phoneNumber}
-                                           onChange={e => setPhoneNumber(e.target.value)} className={fieldClass}
-                                           type="tel"/>
-                                </div>
-                                <div className="flex items-center gap-4 px-4 py-3">
-                                    <label className="w-28 text-sm font-medium text-gray-500 shrink-0"
-                                           htmlFor="website">Website</label>
-                                    <input id="website" value={website} onChange={e => setWebsite(e.target.value)}
-                                           className={fieldClass} type="url"/>
-                                </div>
-                                <div className="flex items-center gap-4 px-4 py-3">
-                                    <label className="w-28 text-sm font-medium text-gray-500 shrink-0"
-                                           htmlFor="rating">Rating</label>
-                                    <input id="rating" value={rating} onChange={e => setRating(e.target.value)}
-                                           className={fieldClass} max="5" min="0" step="0.1" type="number"/>
-                                </div>
-                                <div className="flex items-center gap-4 px-4 py-3">
-                                    <label className="w-28 text-sm font-medium text-gray-500 shrink-0"
-                                           htmlFor="reviewCount">Reviews</label>
-                                    <input id="reviewCount" value={reviewCount}
-                                           onChange={e => setReviewCount(e.target.value)} className={fieldClass} min="0"
-                                           type="number"/>
-                                </div>
-                                <div className="flex items-center gap-4 px-4 py-3">
-                                    <label className="w-28 text-sm font-medium text-gray-500 shrink-0"
-                                           htmlFor="priceLevel">Price</label>
-                                    <select id="priceLevel" value={priceLevel}
-                                            onChange={e => setPriceLevel(e.target.value)}
-                                            className={`${fieldClass} bg-white`}>
-                                        {PRICE_LEVELS.map(p => <option key={p.value}
-                                                                       value={p.value}>{p.label}</option>)}
-                                    </select>
-                                </div>
-                                <div className="flex items-start gap-4 px-4 py-3">
-                                    <label className="w-28 text-sm font-medium text-gray-500 shrink-0 mt-1"
-                                           htmlFor="services">Services</label>
-                                    <textarea
-                                        id="services"
-                                        value={servicesRaw}
-                                        onChange={e => setServicesRaw(e.target.value)}
-                                        className="flex-1 text-sm text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 px-3 py-2 resize-none"
-                                        placeholder="manicure, pedicure, ..."
-                                        rows={2}
-                                    />
-                                </div>
+                                {errors.name && <p className={cx.error}>{errors.name.message}</p>}
                             </div>
-
-                            <div className="flex gap-3">
-                                <button
-                                    disabled={saving}
-                                    className="flex-1 bg-pink-500 hover:bg-pink-600 disabled:bg-pink-300 text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
-                                    type="submit"
-                                >
-                                    {saving ? 'Saving...' : 'Save changes'}
-                                </button>
-                                <Link
-                                    to={`/salons/${id}`}
-                                    className="px-5 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 transition-colors"
-                                >
-                                    Cancel
-                                </Link>
+                            <div className={cx.row}>
+                                <label className={cx.label} htmlFor="district">District</label>
+                                <input id="district" className={cx.field} type="text" {...register('district')}/>
                             </div>
-                        </form>
-                    </>
+                            <div className={cx.row}>
+                                <label className={cx.label} htmlFor="address">Address</label>
+                                <input id="address" className={cx.field} type="text" {...register('address')}/>
+                            </div>
+                            <div className={cx.row}>
+                                <label className={cx.label} htmlFor="phoneNumber">Phone</label>
+                                <input id="phoneNumber" className={cx.field} type="tel" {...register('phoneNumber')}/>
+                            </div>
+                            <div className="flex flex-col px-4 py-3">
+                                <div className="flex items-center gap-4">
+                                    <label className={cx.label} htmlFor="website">Website</label>
+                                    <input id="website" className={cx.field} type="url"
+                                           {...register('website', {
+                                               validate: v => !v || v.startsWith('https') || 'Must start with https://',
+                                           })}/>
+                                </div>
+                                {errors.website && <p className={cx.error}>{errors.website.message}</p>}
+                            </div>
+                            <div className="flex flex-col px-4 py-3">
+                                <div className="flex items-center gap-4">
+                                    <label className={cx.label} htmlFor="rating">Rating</label>
+                                    <input id="rating" className={cx.field} type="number" step="0.1"
+                                           {...register('rating', {
+                                               min: {value: 0, message: 'Min 0'},
+                                               max: {value: 5, message: 'Max 5'},
+                                           })}/>
+                                </div>
+                                {errors.rating && <p className={cx.error}>{errors.rating.message}</p>}
+                            </div>
+                            <div className="flex flex-col px-4 py-3">
+                                <div className="flex items-center gap-4">
+                                    <label className={cx.label} htmlFor="reviewCount">Reviews</label>
+                                    <input id="reviewCount" className={cx.field} type="number"
+                                           {...register('reviewCount', {
+                                               min: {value: 0, message: 'Min 0'},
+                                           })}/>
+                                </div>
+                                {errors.reviewCount && <p className={cx.error}>{errors.reviewCount.message}</p>}
+                            </div>
+                            <div className={cx.row}>
+                                <label className={cx.label} htmlFor="priceLevel">Price</label>
+                                <select id="priceLevel" className={`${cx.field} bg-white`} {...register('priceLevel')}>
+                                    {PRICE_LEVELS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                                </select>
+                            </div>
+                            <div className="flex items-start gap-4 px-4 py-3">
+                                <label className={`${cx.label} mt-1`} htmlFor="services">Services</label>
+                                <textarea
+                                    id="services"
+                                    className="flex-1 text-sm text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 px-3 py-2 resize-none"
+                                    placeholder="manicure, pedicure, …"
+                                    rows={2}
+                                    {...register('servicesRaw')}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                disabled={isSubmitting}
+                                className="flex-1 bg-pink-500 hover:bg-pink-600 disabled:bg-pink-300 text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
+                                type="submit"
+                            >
+                                {isSubmitting ? 'Saving…' : 'Save changes'}
+                            </button>
+                            <Link
+                                to={`/salons/${id}`}
+                                className="px-5 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+                            >
+                                Cancel
+                            </Link>
+                        </div>
+                    </form>
                 )}
             </div>
         </div>
