@@ -10,7 +10,6 @@ export interface LatLng {
     longitude: number;
 }
 
-// Fields to request — keep the list minimal to reduce billing SKU cost
 const FIELD_MASK = [
     'places.id',
     'places.displayName',
@@ -21,11 +20,13 @@ const FIELD_MASK = [
     'places.rating',
     'places.userRatingCount',
     'places.priceLevel',
+    'places.priceRange',
     'places.types',
     'places.primaryType',
     'places.location',
     'places.businessStatus',
     'places.regularOpeningHours.weekdayDescriptions',
+    'places.photos',
 ].join(',');
 
 const client = new PlacesClient();
@@ -53,6 +54,15 @@ export async function searchNearby(
     return response.places ?? [];
 }
 
+export async function getPhotoUri(name: string, maxWidthPx = 800): Promise<string | null> {
+    try {
+        const [media] = await client.getPhotoMedia({name: `${name}/media`, maxWidthPx});
+        return media.photoUri ?? null;
+    } catch {
+        return null;
+    }
+}
+
 const NOISE_TYPES = new Set([
     'point_of_interest', 'establishment', 'health', 'service',
     'store', 'food', 'finance', 'premise',
@@ -67,4 +77,19 @@ export function extractDistrict(components: IAddressComponent[] | null | undefin
 
 export function extractServices(types: string[] | null | undefined): string[] {
     return (types ?? []).filter(t => !NOISE_TYPES.has(t));
+}
+
+const PRICE_LEVEL_MAP: Record<string, number> = {
+    PRICE_LEVEL_UNSPECIFIED: 0,
+    PRICE_LEVEL_FREE: 1,
+    PRICE_LEVEL_INEXPENSIVE: 2,
+    PRICE_LEVEL_MODERATE: 3,
+    PRICE_LEVEL_EXPENSIVE: 4,
+    PRICE_LEVEL_VERY_EXPENSIVE: 5,
+};
+
+export function mapPriceLevel(raw: string | number | null | undefined): number | null {
+    if (raw == null) return null;
+    if (typeof raw === 'number') return raw;
+    return PRICE_LEVEL_MAP[raw] ?? null;
 }

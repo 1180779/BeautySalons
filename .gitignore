@@ -4,3 +4,4 @@ dist/
 *.local
 salons.json
 exp/
+/packages/frontend/public/photos/

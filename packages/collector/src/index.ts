@@ -1,8 +1,8 @@
 import {writeFileSync} from 'fs';
-import {extractDistrict, extractServices, IPlace, searchNearby} from './places-client';
-import type {CollectedSalon} from '@beauty-salons/shared';
+import {extractDistrict, extractServices, IPlace, mapPriceLevel, searchNearby} from './places-client';
+import type {CollectedSalon, PriceRange, SalonPhoto} from '@beauty-salons/shared';
 
-const TARGET = 120;
+const TARGET = 10_000_000;
 const OUTPUT_FILE = 'salons.json';
 
 const TYPES = [
@@ -32,7 +32,27 @@ const DISTRICT_CENTERS: Array<{ name: string; center: { latitude: number; longit
 
 const SEARCH_RADIUS_METERS = 2500;
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+function extractPriceRange(place: IPlace): PriceRange | null {
+    const pr = (place as any).priceRange;
+    if (!pr) return null;
+    const currency = pr.startPrice?.currencyCode ?? pr.endPrice?.currencyCode ?? null;
+    const startPrice = pr.startPrice?.units != null ? Number(pr.startPrice.units) : null;
+    const endPrice = pr.endPrice?.units != null ? Number(pr.endPrice.units) : null;
+    if (startPrice == null && endPrice == null) return null;
+    return {startPrice, endPrice, currency};
+}
+
+function extractPhotos(place: IPlace): SalonPhoto[] {
+    return (place.photos ?? []).slice(0, 3).flatMap(p => {
+        if (!p.name) return [];
+        const attributions = (p.authorAttributions ?? []).map((a: any) => ({
+            displayName: a.displayName ?? '',
+            uri: a.uri ?? '',
+            photoUri: a.photoUri ?? '',
+        }));
+        return [{url: p.name, attributions}];
+    });
+}
 
 function normalize(place: IPlace): CollectedSalon {
     return {
@@ -44,13 +64,14 @@ function normalize(place: IPlace): CollectedSalon {
         website: place.websiteUri ?? null,
         services: extractServices(place.types),
         primaryType: place.primaryType ?? null,
-        priceLevel: place.priceLevel != null ? String(place.priceLevel) : null,
+        priceLevel: mapPriceLevel(place.priceLevel as any),
+        priceRange: extractPriceRange(place),
         rating: place.rating ?? null,
         reviewCount: place.userRatingCount ?? null,
         latitude: place.location?.latitude ?? null,
         longitude: place.location?.longitude ?? null,
         openingHours: place.regularOpeningHours?.weekdayDescriptions ?? null,
-        // TODO: strip _raw before seeding to DB once data shape is stable
+        photos: extractPhotos(place),
         _raw: place,
     };
 }
@@ -77,7 +98,8 @@ async function main() {
                     for (const place of places) {
                         if (!place.id || seen.has(place.id)) continue;
                         seen.add(place.id);
-                        salons.push(normalize(place));
+                        const salon = normalize(place);
+                        salons.push(salon);
                         newCount++;
                     }
 
@@ -85,14 +107,12 @@ async function main() {
                     save(salons);
 
                     if (seen.size >= TARGET) {
-                        console.log(`\nTarget of ${TARGET} reached — stopping early.`);
+                        console.log(`\nTarget of ${TARGET} reached -- stopping early.`);
                         break outer;
                     }
                 } catch (err) {
                     console.error(`ERROR: ${err instanceof Error ? err.message : err}`);
                 }
-
-                await sleep(150);
             }
         }
 
