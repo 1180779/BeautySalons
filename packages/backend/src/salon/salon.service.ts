@@ -20,7 +20,9 @@ export class SalonService {
         if (district) qb.andWhere('s.district ILIKE :district', {district: `%${district}%`});
         if (service) qb.andWhere('EXISTS (SELECT 1 FROM unnest(s.services) svc WHERE svc ILIKE :service)', {service: `%${service}%`});
 
-        qb.orderBy('s.rating', 'DESC', 'NULLS LAST');
+        qb.orderBy('s.rating', 'DESC', 'NULLS LAST')
+            .addOrderBy('s.reviewCount', 'DESC', 'NULLS LAST')
+            .addOrderBy('s.id', 'ASC');
         qb.skip((page - 1) * pageSize).take(pageSize);
 
         const [rows, total] = await qb.getManyAndCount();

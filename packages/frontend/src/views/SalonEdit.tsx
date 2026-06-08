@@ -161,7 +161,7 @@ export default function SalonEdit() {
                                         value={servicesRaw}
                                         onChange={e => setServicesRaw(e.target.value)}
                                         className="flex-1 text-sm text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400 px-3 py-2 resize-none"
-                                        placeholder="manicure, pedicure, …"
+                                        placeholder="manicure, pedicure, ..."
                                         rows={2}
                                     />
                                 </div>
@@ -173,7 +173,7 @@ export default function SalonEdit() {
                                     className="flex-1 bg-pink-500 hover:bg-pink-600 disabled:bg-pink-300 text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
                                     type="submit"
                                 >
-                                    {saving ? 'Saving…' : 'Save changes'}
+                                    {saving ? 'Saving...' : 'Save changes'}
                                 </button>
                                 <Link
                                     to={`/salons/${id}`}

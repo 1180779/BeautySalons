@@ -84,7 +84,7 @@ export default function SalonDetail() {
                                 </div>
                             ) : (
                                 <div
-                                    className="h-56 bg-gradient-to-br from-pink-100 to-purple-100 rounded-xl flex items-center justify-center">
+                                    className="h-56 bg-linear-to-br from-pink-100 to-purple-100 rounded-xl flex items-center justify-center">
                                     <svg className="w-16 h-16 text-pink-300" fill="none" stroke="currentColor"
                                          viewBox="0 0 24 24">
                                         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" strokeLinecap="round"
@@ -151,6 +151,8 @@ export default function SalonDetail() {
                         </div>
 
                         <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100 mb-6">
+
+                            {/* address */}
                             {salon.address && (
                                 <div className="flex gap-3 px-4 py-3">
                                     <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none"
@@ -164,6 +166,8 @@ export default function SalonDetail() {
                                     <span className="text-sm text-gray-700">{salon.address}</span>
                                 </div>
                             )}
+
+                            {/* phone numer */}
                             {salon.phoneNumber && (
                                 <div className="flex gap-3 px-4 py-3">
                                     <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none"
@@ -176,6 +180,8 @@ export default function SalonDetail() {
                                        className="text-sm text-pink-600 hover:underline">{salon.phoneNumber}</a>
                                 </div>
                             )}
+
+                            {/* website */}
                             {salon.website && (
                                 <div className="flex gap-3 px-4 py-3">
                                     <svg className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none"
@@ -190,6 +196,7 @@ export default function SalonDetail() {
                             )}
                         </div>
 
+                        {/* services tags */}
                         {salon.services.length > 0 && (
                             <div className="mb-6">
                                 <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Services</h2>
