@@ -140,6 +140,7 @@ export default function SalonList() {
                                             alt={s.name}
                                             src={resolvePhotoUrl(s.photos[0].url)}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            onError={e => (e.currentTarget.style.display = 'none')}
                                         />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">

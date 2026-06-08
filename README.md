@@ -73,6 +73,8 @@ Backend API: http://localhost:3000
 
 Required before seeding. Collected data is not included in the repository.
 
+Ensure ADC is set up first: `gcloud auth application-default login`
+
 ```bash
 # 1. Collect salons from Google Places API
 pnpm collect

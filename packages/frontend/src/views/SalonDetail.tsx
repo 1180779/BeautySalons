@@ -65,6 +65,7 @@ export default function SalonDetail() {
                                                     alt={`${salon.name} photo ${i + 1}`}
                                                     src={resolvePhotoUrl(photo.url)}
                                                     className={clsx('w-full object-cover', isHero ? 'h-56' : 'h-36')}
+                                                    onError={e => (e.currentTarget.parentElement!.style.display = 'none')}
                                                 />
                                                 {photo.attributions?.length > 0 && (
                                                     <div
