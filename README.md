@@ -2,6 +2,10 @@
 
 A full-stack web app for browsing beauty salons in Warsaw. Built as a recruitment exercise.
 
+![Salon list](docs/screenshot-list.png)
+![Salon detail](docs/screenshot-detail.png)
+![Salon edit](docs/screenshot-edit.png)
+
 ## Stack
 
 | Layer | Technology |
@@ -52,7 +56,7 @@ pnpm --filter @beauty-salons/shared build
 
 ### 5. Seed the database
 
-Run the full data pipeline first (see below), then seed:
+Either place the provided `salons.json` into `packages/collector/`, or run the full data pipeline (see below), then seed:
 
 ```bash
 pnpm --filter @beauty-salons/backend seed
