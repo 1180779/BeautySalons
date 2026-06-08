@@ -91,7 +91,8 @@ export default function SalonEdit() {
                         {Array.from({length: 5}, (_, i) => <div key={i} className="h-12 bg-gray-200 rounded-lg"/>)}
                     </div>
                 ) : (
-                    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+                    <form className="space-y-4"
+                          onSubmit={handleSubmit(onSubmit, errors => console.log('validation errors:', errors))}>
                         <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
                             <div className="flex flex-col px-4 py-3">
                                 <div className="flex items-center gap-4">
@@ -118,7 +119,7 @@ export default function SalonEdit() {
                                     <label className={cx.label} htmlFor="website">Website</label>
                                     <input id="website" className={cx.field} type="url"
                                            {...register('website', {
-                                               validate: v => !v || v.startsWith('https') || 'Must start with https://',
+                                               validate: v => !v || v.startsWith('http') || 'Must start with http:// or https://',
                                            })}/>
                                 </div>
                                 {errors.website && <p className={cx.error}>{errors.website.message}</p>}
@@ -128,7 +129,7 @@ export default function SalonEdit() {
                                     <label className={cx.label} htmlFor="rating">Rating</label>
                                     <input id="rating" className={cx.field} type="number" step="0.1"
                                            {...register('rating', {
-                                               min: {value: 0, message: 'Min 0'},
+                                               min: {value: 1, message: 'Min 1'},
                                                max: {value: 5, message: 'Max 5'},
                                            })}/>
                                 </div>

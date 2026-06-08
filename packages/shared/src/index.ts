@@ -1,1 +1,1 @@
-export * from './salon';
+export * from './salon.js';
